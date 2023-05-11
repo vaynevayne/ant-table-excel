@@ -1,0 +1,82 @@
+{
+  "name": "ant-table-excel",
+  "version": "0.0.2",
+  "description": "基于 antd table 二次封装 ,支持导出 excel,列拖拽排序,列显示隐藏",
+  "license": "MIT",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "father build",
+    "build:watch": "father dev",
+    "deploy": "gh-pages -d docs-dist",
+    "dev": "dumi dev",
+    "docs:build": "dumi build",
+    "doctor": "father doctor",
+    "lint": "npm run lint:es && npm run lint:css",
+    "lint:css": "stylelint \"{src,test}/**/*.{css,less}\"",
+    "lint:es": "eslint \"{src,test}/**/*.{js,jsx,ts,tsx}\"",
+    "prepare": "husky install && dumi setup",
+    "prepublishOnly": "father doctor && npm run build",
+    "start": "yarn run dev"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "lint-staged": {
+    "*.{md,json}": [
+      "prettier --write --no-error-on-unmatched-pattern"
+    ],
+    "*.{css,less}": [
+      "stylelint --fix",
+      "prettier --write"
+    ],
+    "*.{js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --parser=typescript --write"
+    ]
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@commitlint/cli": "^17.6.3",
+    "@commitlint/config-conventional": "^17.6.3",
+    "@types/react": "^18.2.6",
+    "@types/react-dom": "^18.2.4",
+    "@umijs/lint": "^4.0.67",
+    "antd": "^5.4.7",
+    "dumi": "^2.1.22",
+    "eslint": "^8.40.0",
+    "father": "^4.1.9",
+    "gh-pages": "^5.0.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.2",
+    "prettier": "^2.8.8",
+    "prettier-plugin-organize-imports": "^3.2.2",
+    "prettier-plugin-packagejson": "^2.4.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-drag-listview": "^2.0.0",
+    "stylelint": "^15.6.1"
+  },
+  "peerDependencies": {
+    "antd": "^5.4.7",
+    "react": ">=16.9.0",
+    "react-dom": ">=16.9.0",
+    "react-drag-listview": "^2.0.0"
+  },
+  "packageManager": "yarn@1.22.19",
+  "publishConfig": {
+    "access": "public"
+  },
+  "authors": [
+    "1848212420@qq.com"
+  ]
+}
