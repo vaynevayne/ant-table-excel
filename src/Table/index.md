@@ -67,7 +67,7 @@ export default () => {
 
 非受控模式: `defaultColumnsState` 和 可选的 `onColumnsStateChange`
 
-```jsx
+<!-- ```jsx
 import { Table } from 'ant-table-excel';
 import { useMemo } from 'react';
 
@@ -112,4 +112,4 @@ export default () => {
     ></Table>
   );
 };
-```
+``` -->

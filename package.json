@@ -59,6 +59,7 @@
     "antd": "^5.4.7",
     "dumi": "^2.1.22",
     "eslint": "^8.40.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "father": "^4.1.9",
     "gh-pages": "^5.0.0",
     "husky": "^8.0.3",

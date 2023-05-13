@@ -15,7 +15,7 @@ import { useUncontrolled } from '../hooks/useUncontrolled';
 import './index.less';
 import SettingModal from './SettingModal';
 import { ColumnsState, ColumnWithState } from './type';
-import { calcVisible, findColKey, getSorter } from './util';
+import { findColKey, getSorter, getVisible } from './util';
 
 type MyTableProps = {
   /**
@@ -46,7 +46,7 @@ const MyTable: FC<MyTableProps> = ({
   ...tableProps
 }) => {
   // 传入 null, 不会触发函数参数默认值,所以在这里写引用类型默认值
-  const columns = propColumns || [];
+  const columns = useMemo(() => propColumns || [], [propColumns]);
 
   const [columnsState, setColumnsState] = useUncontrolled<ColumnsState>({
     value: propColumnsState,
@@ -55,18 +55,14 @@ const MyTable: FC<MyTableProps> = ({
     onChange: onColumnsStateChange,
   });
 
-  console.log('columnsState', columnsState);
-
   const tableColumns = useMemo(
     () =>
       columns
         .filter(Boolean)
         .sort(getSorter(columnsState))
-        .filter(calcVisible(columnsState, defaultVisible)),
-    [columns, columnsState],
+        .filter(getVisible(columnsState, defaultVisible)),
+    [columns, columnsState, defaultVisible],
   );
-
-  console.log('tableColumns', tableColumns);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -103,9 +99,6 @@ const MyTable: FC<MyTableProps> = ({
   const onOk = useCallback(() => setIsModalOpen(false), []);
   const onCancel = useCallback(() => setIsModalOpen(false), []);
 
-  const [s, setS] = useState();
-  console.log('s', s);
-
   return (
     <>
       <Space style={{ marginBottom: 16 }}>
@@ -116,23 +109,19 @@ const MyTable: FC<MyTableProps> = ({
         <Table columns={tableColumns} {...tableProps} />
       </ReactDragListView.DragColumn>
 
-      <Button
-        onClick={() => {
-          setS({});
-        }}
-      >
-        {' '}
-        aasa
-      </Button>
-
       <ColumnsStateContext.Provider value={contextValue}>
-        <SettingModal
-          columns={columns}
-          open={isModalOpen}
-          onOk={onOk}
-          onCancel={onCancel}
-          defaultVisible
-        ></SettingModal>
+        {
+          // 不能去除, 为了每次打开modal, useState重新执行
+          isModalOpen && (
+            <SettingModal
+              columns={columns}
+              open={isModalOpen}
+              onOk={onOk}
+              onCancel={onCancel}
+              defaultVisible
+            ></SettingModal>
+          )
+        }
       </ColumnsStateContext.Provider>
     </>
   );

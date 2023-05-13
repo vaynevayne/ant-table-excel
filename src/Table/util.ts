@@ -32,11 +32,10 @@ export const getSorter =
   };
 
 /** 先 sort 再 filter */
-export const calcVisible =
+export const getVisible =
   (columnsState: ColumnsState, defaultVisible: boolean) =>
   (column: ColumnWithState) => {
     const state = columnsState[findColKey(column)] || {};
-    console.log('state', state);
     if (Object.prototype.hasOwnProperty.call(state, 'visible')) {
       return state.visible;
     } else if (Object.prototype.hasOwnProperty.call(column, 'visible')) {
