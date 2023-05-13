@@ -1,98 +1,110 @@
-import { Button, ColumnType, Space, Table, TableProps } from 'antd';
-import React, { useMemo, useState, type FC } from 'react';
+import { ColumnsStateContext } from 'ant-table-excel/context';
+import { Button, Space, Table, TableProps } from 'antd';
+import { arrayMoveImmutable } from 'array-move';
+import { produce } from 'immer';
+import React, {
+  Dispatch,
+  memo,
+  useCallback,
+  useMemo,
+  useState,
+  type FC,
+} from 'react';
 import ReactDragListView from 'react-drag-listview';
 import { useUncontrolled } from '../hooks/useUncontrolled';
-import SettingModal from './SettingModal';
 import './index.less';
+import SettingModal from './SettingModal';
+import { ColumnsState, ColumnWithState } from './type';
+import { calcVisible, findColKey, getSorter } from './util';
 
 type MyTableProps = {
   /**
-   * @description 非受控模式
+   * @description 可以在 column 中传入相关 columnState, 将作为默认值使用
    */
-  defaultColumns?: TableProps<any>['columns'];
+  columns: ColumnWithState[];
+
+  defaultColumnsState?: ColumnsState;
+
+  columnsState?: ColumnsState;
+
+  onColumnsStateChange: Dispatch<ColumnsState>;
 
   /**
-   * @description 受控模式 注: defaultColumns 与 columns 至少传入一个
+   * @description 默认状态下,所有列的显示情况
+   * @default true
    */
-  columns?: ColumnType[];
 
-  /**
-   * @description 当 columns 改变时调用; 如果传入 columns ,那么该值必传, 否则可选
-   */
-  onColumnsChange?: (columns: any[]) => void;
-
-  /**
-   * @description 列显示(受控模式) table 中显示的 columns 字符串数组, columns.key || columns.title; 不使用 dataIndex 是因为 dataIndex 可能为数组,不方便比较
-   * 不传 或者 undefined null 表示全部可见
-   */
-  visibleColumnKeys?: string[];
-
-  /**
-   * @description 列显示(非受控模式) table 中显示的 columns 字符串数组, columns.key || columns.title
-   */
-  defaultVisibleColumnKeys?: string[];
-
-  /**
-   * @description visibleColumns 改变时触发
-   */
-  onVisibleColumnKeysChange?: (columns: string[]) => void;
+  defaultVisible?: boolean;
 } & TableProps<any>;
 
 const MyTable: FC<MyTableProps> = ({
-  columns,
-  defaultColumns,
-  onColumnsChange,
-  visibleColumnKeys,
-  defaultVisibleColumnKeys,
-  onVisibleColumnKeysChange,
+  columns: propColumns,
+  defaultColumnsState,
+  columnsState: propColumnsState,
+  onColumnsStateChange,
+  defaultVisible = true,
   ...tableProps
 }) => {
-  const [_columns, handleColumnsChange] = useUncontrolled<ColumnType[]>({
-    value: columns,
-    defaultValue: defaultColumns,
-    finalValue: [],
-    onChange: onColumnsChange,
+  // 传入 null, 不会触发函数参数默认值,所以在这里写引用类型默认值
+  const columns = propColumns || [];
+
+  const [columnsState, setColumnsState] = useUncontrolled<ColumnsState>({
+    value: propColumnsState,
+    defaultValue: defaultColumnsState,
+    finalValue: {},
+    onChange: onColumnsStateChange,
   });
-  // table 也需要使用 visibleColumns filter table, 针对 SettingModal 是个受控属性
-  // useEffect columns 用于设置 visibleColumns
+
+  console.log('columnsState', columnsState);
+
+  const tableColumns = useMemo(
+    () =>
+      columns
+        .filter(Boolean)
+        .sort(getSorter(columnsState))
+        .filter(calcVisible(columnsState, defaultVisible)),
+    [columns, columnsState],
+  );
+
+  console.log('tableColumns', tableColumns);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const dragProps = {
     onDragEnd(fromIndex: number, toIndex: number) {
-      const cloned = [..._columns];
-      const item = cloned.splice(fromIndex, 1)[0];
-      cloned.splice(toIndex, 0, item);
-      handleColumnsChange(cloned);
+      const moved = arrayMoveImmutable<ColumnWithState>(
+        tableColumns,
+        fromIndex,
+        toIndex,
+      );
+
+      const newColumnsState = produce(columnsState, (draft) => {
+        moved.forEach((col, idx) => {
+          const colKey = findColKey(col);
+          draft[colKey] = {
+            ...draft[colKey],
+            order: idx,
+          };
+        });
+      });
+      setColumnsState(newColumnsState);
     },
     nodeSelector: 'th',
   };
 
-  const [checkedList, setCheckedList] = useUncontrolled<
-    (ColumnType['key'] | ColumnType['title'])[] | undefined
-  >({
-    value: visibleColumnKeys,
-    defaultValue: defaultVisibleColumnKeys,
-    finalValue: undefined,
-    onChange: onVisibleColumnKeysChange,
-  });
-
-  // Better: Adjust the state while rendering
-  const uncontrolledColumns = columns || defaultColumns;
-  const [prevColumns, setPrevColumns] = useState([]);
-
-  if (uncontrolledColumns !== prevColumns) {
-    setPrevColumns(uncontrolledColumns);
-    setCheckedList(uncontrolledColumns.map((item) => item.key || item.title));
-  }
-
-  const visibleColumns = useMemo(
-    () =>
-      _columns.filter(
-        (item) =>
-          checkedList?.includes(item.key) || checkedList?.includes(item.title),
-      ),
-    [checkedList, _columns],
+  const contextValue = useMemo(
+    () => ({
+      columnsState,
+      setColumnsState,
+    }),
+    [columnsState, setColumnsState],
   );
+
+  const onOk = useCallback(() => setIsModalOpen(false), []);
+  const onCancel = useCallback(() => setIsModalOpen(false), []);
+
+  const [s, setS] = useState();
+  console.log('s', s);
 
   return (
     <>
@@ -101,19 +113,30 @@ const MyTable: FC<MyTableProps> = ({
       </Space>
 
       <ReactDragListView.DragColumn {...dragProps}>
-        <Table columns={visibleColumns} {...tableProps} />
+        <Table columns={tableColumns} {...tableProps} />
       </ReactDragListView.DragColumn>
 
-      <SettingModal
-        columns={_columns}
-        open={isModalOpen}
-        onOk={() => setIsModalOpen(false)}
-        onCancel={() => setIsModalOpen(false)}
-        checkedList={checkedList}
-        setCheckedList={setCheckedList}
-      ></SettingModal>
+      <Button
+        onClick={() => {
+          setS({});
+        }}
+      >
+        {' '}
+        aasa
+      </Button>
+
+      <ColumnsStateContext.Provider value={contextValue}>
+        <SettingModal
+          columns={columns}
+          open={isModalOpen}
+          onOk={onOk}
+          onCancel={onCancel}
+          defaultVisible
+        ></SettingModal>
+      </ColumnsStateContext.Provider>
     </>
   );
 };
 
-export default MyTable;
+const MemoTable = memo(MyTable);
+export default MemoTable;

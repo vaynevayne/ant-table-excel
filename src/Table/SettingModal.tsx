@@ -1,45 +1,28 @@
-import { Checkbox, ColumnType, Divider, Modal, ModalProps } from 'antd';
+import { ColumnsStateContext } from 'ant-table-excel/context';
+import { Checkbox, Divider, Modal, ModalProps, Space } from 'antd';
 import type { CheckboxChangeEvent } from 'antd/es/checkbox';
-import type { CheckboxValueType } from 'antd/es/checkbox/Group';
-import React, { FC, useMemo, useState } from 'react';
-
-const CheckboxGroup = Checkbox.Group;
-
-type CheckedValue = ColumnType['key'] | ColumnType['title'];
+import { produce } from 'immer';
+import React, { FC, memo, useContext, useState } from 'react';
+import { ColumnWithState } from './type';
+import { calcVisible, findColKey } from './util';
 
 export type SettingModalProps = {
-  checkedList: CheckedValue[];
-  setCheckedList: (checkedList: CheckedValue[]) => void;
+  columns: ColumnWithState[];
+  defaultVisible: boolean;
 } & ModalProps;
 
 const SettingModal: FC<SettingModalProps> = ({
   columns,
-  checkedList,
-  setCheckedList,
+  defaultVisible,
   ...other
 }) => {
-  const options = useMemo(() => {
-    if (!columns) {
-      return [];
-    }
-    return columns.map((col) => ({
-      label: col.title,
-      value: col.key || col.title,
-      disabled: !!col.disabled,
-    }));
-  }, []);
+  const { columnsState, setColumnsState } = useContext(ColumnsStateContext);
+  console.log('modal render');
 
   const [indeterminate, setIndeterminate] = useState(true);
   const [checkAll, setCheckAll] = useState(false);
 
-  const onChange = (list: CheckboxValueType[]) => {
-    setCheckedList(list);
-    setIndeterminate(!!list.length && list.length < options.length);
-    setCheckAll(list.length === options.length);
-  };
-
   const onCheckAllChange = (e: CheckboxChangeEvent) => {
-    setCheckedList(e.target.checked ? options.map((item) => item.value) : []);
     setIndeterminate(false);
     setCheckAll(e.target.checked);
   };
@@ -54,13 +37,36 @@ const SettingModal: FC<SettingModalProps> = ({
         全选
       </Checkbox>
       <Divider />
-      <CheckboxGroup
-        options={options}
-        value={checkedList}
-        onChange={onChange}
-      />
+
+      <Space size={'small'}>
+        {columns.map((column) => {
+          console.log('render columns');
+
+          const checked = calcVisible(columnsState, defaultVisible)(column);
+          return (
+            <Checkbox
+              key={findColKey(column)}
+              onChange={(e) => {
+                const checked = e.target.checked;
+                const colKey = findColKey(column);
+                const newColumnsState = produce(columnsState, (draft) => {
+                  draft[colKey] = { ...draft[colKey], visible: checked };
+                });
+                console.log('newColumnsState', newColumnsState);
+
+                setColumnsState(newColumnsState);
+              }}
+              checked={checked}
+            >
+              {typeof column.title === 'function'
+                ? column.title({})
+                : column.title}
+            </Checkbox>
+          );
+        })}
+      </Space>
     </Modal>
   );
 };
 
-export default SettingModal;
+export default memo(SettingModal);

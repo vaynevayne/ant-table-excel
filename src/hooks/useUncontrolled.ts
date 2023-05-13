@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 interface UseUncontrolledInput<T> {
   /** Value for controlled state */
@@ -14,23 +14,30 @@ interface UseUncontrolledInput<T> {
   onChange?(value: T): void;
 }
 
+const useMemoizedFn = (fn: any) => useCallback(fn || (() => {}), [fn]);
+
 export function useUncontrolled<T>({
   value,
   defaultValue,
   finalValue,
-  onChange = () => {},
+  onChange,
 }: UseUncontrolledInput<T>): [T, (value: T) => void, boolean] {
+  const stableOnChange = useMemoizedFn(onChange);
+
   const [uncontrolledValue, setUncontrolledValue] = useState(
-    defaultValue !== undefined ? defaultValue : finalValue
+    defaultValue !== undefined ? defaultValue : finalValue,
   );
 
-  const handleUncontrolledChange = (val: T) => {
-    setUncontrolledValue(val);
-    onChange?.(val);
-  };
+  const handleUncontrolledChange = useCallback(
+    (val: T) => {
+      setUncontrolledValue(val);
+      stableOnChange?.(val);
+    },
+    [stableOnChange],
+  );
 
   if (value !== undefined) {
-    return [value as T, onChange, true];
+    return [value as T, stableOnChange, true];
   }
 
   return [uncontrolledValue as T, handleUncontrolledChange, false];
