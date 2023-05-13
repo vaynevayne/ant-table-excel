@@ -11,6 +11,12 @@ group:
 
 # 列拖拽排序
 
+使用方式:
+
+- 通过 columnsState 传入 order, visible (优先级 高)
+- 也可以通过 column.order column.visible 传入默认值 (优先级 中)
+- 也可以通过 table 的 defaultVisible 传入全局默认值 (优先级 低)
+
 受控模式: `columnsState` 和 `onColumnsStateChange`
 
 ```jsx
