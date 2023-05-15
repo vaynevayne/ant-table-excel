@@ -1,20 +1,22 @@
 import { ColumnsStateContext } from 'ant-table-excel/context';
-import { Button, Space, Table, TableProps } from 'antd';
+import { useUncontrolled } from 'ant-table-excel/hooks';
+import { Button, Col, Row, Space, Table, TableProps } from 'antd';
 import { arrayMoveImmutable } from 'array-move';
 import { produce } from 'immer';
 import React, {
   Dispatch,
+  FC,
   memo,
   useCallback,
   useMemo,
   useState,
-  type FC,
 } from 'react';
+import { Item, Menu, useContextMenu } from 'react-contexify';
+import 'react-contexify/dist/ReactContexify.css';
 import ReactDragListView from 'react-drag-listview';
-import { useUncontrolled } from '../hooks/useUncontrolled';
 import './index.less';
 import SettingModal from './SettingModal';
-import { ColumnsState, ColumnWithState } from './type';
+import { ColumnsState, ColumnWithState, Meta } from './type';
 import { findColKey, getSorter, getVisible } from './util';
 
 type MyTableProps = {
@@ -27,26 +29,30 @@ type MyTableProps = {
 
   columnsState?: ColumnsState;
 
-  onColumnsStateChange: Dispatch<ColumnsState>;
+  onColumnsStateChange?: Dispatch<ColumnsState>;
 
-  /**
-   * @description 默认状态下,所有列的显示情况
-   * @default true
-   */
-
-  defaultVisible?: boolean;
+  meta?: Meta;
 } & TableProps<any>;
+
+const MENU_ID = 'menu-id';
 
 const MyTable: FC<MyTableProps> = ({
   columns: propColumns,
   defaultColumnsState,
   columnsState: propColumnsState,
   onColumnsStateChange,
-  defaultVisible = true,
+  meta: propMeta,
   ...tableProps
 }) => {
-  // 传入 null, 不会触发函数参数默认值,所以在这里写引用类型默认值
+  // 函数参数默认值对 null 无效,所以在这里写引用类型默认值
   const columns = useMemo(() => propColumns || [], [propColumns]);
+  const meta = useMemo(
+    () => ({
+      defaultVisible: true,
+      ...propMeta,
+    }),
+    [propMeta],
+  );
 
   const [columnsState, setColumnsState] = useUncontrolled<ColumnsState>({
     value: propColumnsState,
@@ -60,11 +66,15 @@ const MyTable: FC<MyTableProps> = ({
       columns
         .filter(Boolean)
         .sort(getSorter(columnsState))
-        .filter(getVisible(columnsState, defaultVisible)),
-    [columns, columnsState, defaultVisible],
+        .filter(getVisible(columnsState, meta.defaultVisible)),
+    [columns, columnsState, meta.defaultVisible],
   );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // 🔥 you can use this hook from everywhere. All you need is the menu id
+  const { show } = useContextMenu({
+    id: MENU_ID,
+  });
 
   const dragProps = {
     onDragEnd(fromIndex: number, toIndex: number) {
@@ -101,12 +111,30 @@ const MyTable: FC<MyTableProps> = ({
 
   return (
     <>
-      <Space style={{ marginBottom: 16 }}>
-        <Button onClick={() => setIsModalOpen(true)}>列设置</Button>
-      </Space>
+      <Row wrap={false}>
+        <Col flex={1}></Col>
+        <Col flex="none">
+          <Space style={{ marginBottom: 8, marginLeft: 'auto' }}>
+            <Button onClick={() => setIsModalOpen(true)}>列设置</Button>
+          </Space>
+        </Col>
+      </Row>
 
       <ReactDragListView.DragColumn {...dragProps}>
-        <Table columns={tableColumns} {...tableProps} />
+        <Table
+          columns={tableColumns}
+          {...tableProps}
+          onRow={(record) => {
+            return {
+              onContextMenu: (event) => {
+                show({
+                  event,
+                  props: record,
+                });
+              },
+            };
+          }}
+        />
       </ReactDragListView.DragColumn>
 
       <ColumnsStateContext.Provider value={contextValue}>
@@ -118,11 +146,25 @@ const MyTable: FC<MyTableProps> = ({
               open={isModalOpen}
               onOk={onOk}
               onCancel={onCancel}
-              defaultVisible
+              meta={meta}
             ></SettingModal>
           )
         }
       </ColumnsStateContext.Provider>
+
+      {meta.contextMenus?.length && (
+        <Menu id={MENU_ID}>
+          {meta.contextMenus.map((item, index) => (
+            <Item
+              key={item.key || index}
+              onClick={meta.handleItemClick}
+              {...item}
+            >
+              {item.children}
+            </Item>
+          ))}
+        </Menu>
+      )}
     </>
   );
 };

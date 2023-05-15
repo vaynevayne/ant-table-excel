@@ -48,7 +48,8 @@
   },
   "dependencies": {
     "array-move": "^4.0.0",
-    "immer": "^10.0.2"
+    "immer": "^10.0.2",
+    "react-contexify": "^6.0.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.6.3",

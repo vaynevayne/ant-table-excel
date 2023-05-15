@@ -9,107 +9,24 @@ group:
   order: 控制分组顺序，数字越小越靠前，默认以路径长度和字典序排序
 ---
 
-# 列拖拽排序
-
 使用方式:
 
 - 通过 columnsState 传入 order, visible (优先级 高)
 - 也可以通过 column.order column.visible 传入默认值 (优先级 中)
 - 也可以通过 table 的 defaultVisible 传入全局默认值 (优先级 低)
 
-受控模式: `columnsState` 和 `onColumnsStateChange`
+### Demo
 
-```jsx
-import { Table } from 'ant-table-excel';
-import { useMemo, useState } from 'react';
+<code src="./demo/controlled.tsx">受控模式</code>
+<code src="./demo/uncontrolled.tsx">非受控模式</code>
+<code src="./demo/contextmenu.tsx">右键菜单</code>
 
-export default () => {
-  const columns = useMemo(
-    () => [
-      {
-        title: '姓名',
-        dataIndex: 'name',
-      },
-      {
-        title: '年龄',
-        dataIndex: 'age',
-      },
-      {
-        title: '地址',
-        dataIndex: 'address',
-      },
-      {
-        title: '电话',
-        dataIndex: 'phone',
-      },
-    ],
-    [],
-  );
+### API
 
-  const dataSource = [
-    { name: '张三', age: 12, address: '北京', phone: 1388888888 },
-    { name: '张4', age: 13, address: '上海', phone: 1388888888 },
-    { name: '张5', age: 14, address: '杭州', phone: 1388888888 },
-  ];
-
-  const [columnsState, onColumnsStateChange] = useState({ name: { order: 2 } });
-  return (
-    <Table
-      columns={columns}
-      columnsState={columnsState}
-      onColumnsStateChange={onColumnsStateChange}
-      dataSource={dataSource}
-      rowKey="name"
-    ></Table>
-  );
-};
-```
-
-非受控模式: `defaultColumnsState` 和 可选的 `onColumnsStateChange`
-
-<!-- ```jsx
-import { Table } from 'ant-table-excel';
-import { useMemo } from 'react';
-
-export default () => {
-  const columns = useMemo(
-    () => [
-      {
-        title: '姓名',
-        dataIndex: 'name',
-      },
-      {
-        title: '年龄',
-        dataIndex: 'age',
-      },
-      {
-        title: '地址',
-        dataIndex: 'address',
-      },
-      {
-        title: '电话',
-        dataIndex: 'phone',
-      },
-    ],
-    [],
-  );
-
-  const dataSource = [
-    { name: '张三', age: 12, address: '北京', phone: 1388888888 },
-    { name: '张4', age: 13, address: '上海', phone: 1388888888 },
-    { name: '张5', age: 14, address: '杭州', phone: 1388888888 },
-  ];
-
-  const defaultColumnsState = { name: { order: 2 } };
-
-  return (
-    <Table
-      columns={columns}
-      defaultColumnsState={defaultColumnsState}
-      // onColumnsStateChange={console.log}
-      dataSource={dataSource}
-      rowKey="name"
-    ></Table>
-  );
-};
-``` -->
+| prop                 | 描述                                                          | 类型                                                              | 默认值                  |
+| -------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------------- |
+| columns              | 同 antd, 扩展了 visible 和 order , 以便通过 column 传递默认值 | `ColumnWithState[]`                                               | 无                      |
+| defaultColumnsState  | 列状态的非受控属性                                            | `ColumnsState`                                                    | 无                      |
+| columnsState         | 列状态的受控属性                                              | `ColumnsState`                                                    | 无                      |
+| onColumnsStateChange | 列状态改变时调用                                              | `(columnsState:ColumnsState, reason:'order' \| 'visible')=> void` | 无                      |
+| meta                 | 除了以上属性,其他属性都放到该命名空间下                       | `Meta`                                                            | `{defaultVisible:true}` |

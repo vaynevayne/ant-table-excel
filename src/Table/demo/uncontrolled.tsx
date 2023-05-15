@@ -11,7 +11,6 @@ export default () => {
       {
         title: '年龄',
         dataIndex: 'age',
-        sorter: (a, b) => a['age'] - b['age'],
       },
       {
         title: '地址',
@@ -31,22 +30,15 @@ export default () => {
     { name: '张5', age: 14, address: '杭州', phone: 1388888888 },
   ];
 
+  const defaultColumnsState = { name: { order: 2 } };
+
   return (
     <Table
       columns={columns}
+      defaultColumnsState={defaultColumnsState}
+      // onColumnsStateChange={console.log}
       dataSource={dataSource}
       rowKey="name"
-      meta={{
-        contextMenus: [
-          {
-            children: 'item1 ',
-            data: {
-              label: 'item1',
-            },
-          },
-        ],
-        handleItemClick: console.log,
-      }}
     ></Table>
   );
 };

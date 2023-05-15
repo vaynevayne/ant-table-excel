@@ -41,6 +41,10 @@ export const getVisible =
     } else if (Object.prototype.hasOwnProperty.call(column, 'visible')) {
       return column.visible;
     } else {
-      return !!defaultVisible || true;
+      return defaultVisible || true;
     }
   };
+
+/** 先 sort 再 filter */
+export const getState = (columnsState: ColumnsState, column: ColumnWithState) =>
+  columnsState[findColKey(column)] || {};

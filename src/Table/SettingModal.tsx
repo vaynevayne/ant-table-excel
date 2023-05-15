@@ -4,12 +4,12 @@ import { Checkbox, Divider, Modal, ModalProps, Space } from 'antd';
 import type { CheckboxChangeEvent } from 'antd/es/checkbox';
 import { produce } from 'immer';
 import React, { FC, memo, useCallback, useContext, useState } from 'react';
-import { ColumnsState, ColumnWithState } from './type';
-import { findColKey, getVisible } from './util';
+import { ColumnsState, ColumnWithState, Meta } from './type';
+import { findColKey, getState, getVisible } from './util';
 
 export type SettingModalProps = {
   columns: ColumnWithState[];
-  defaultVisible: boolean;
+  meta: Meta;
 } & ModalProps;
 
 const mapVisibleToColumns = (
@@ -20,24 +20,26 @@ const mapVisibleToColumns = (
   return columns.map((column) => {
     return {
       ...column,
-      visible: getVisible(columnsState, defaultVisible)(column),
+      visible: !!getVisible(columnsState, defaultVisible)(column),
+      disabled: getState(columnsState, column).disabled,
     };
   });
 };
 
 const SettingModal: FC<SettingModalProps> = ({
   columns,
-  defaultVisible,
+  meta,
   ...modalProps
 }) => {
   const { columnsState, setColumnsState } = useContext(ColumnsStateContext);
 
   /**
+   * 在 modal 代开时, 向columns 中注入visible 和disabled 属性
    * 顺序数量与 columns 一致,属性比 columns 多 visible
    * 搭配 isOpen 创建销毁, 才可以使用 useState 来计算
    */
   const [localColumns, setLocaleColumns] = useState(
-    mapVisibleToColumns(columns, columnsState, defaultVisible),
+    mapVisibleToColumns(columns, columnsState, !!meta.defaultVisible),
   );
 
   const [indeterminate, setIndeterminate] = useState(true);
@@ -107,12 +109,23 @@ const SettingModal: FC<SettingModalProps> = ({
               checked={column.visible}
               onChange={(e) => {
                 const checked = e.target.checked;
-                setLocaleColumns(
-                  produce(localColumns, (draft) => {
-                    draft[index].visible = checked;
-                  }),
-                );
+                console.log('onChange', checked);
+                if (meta.onCheckboxChange) {
+                  meta.onCheckboxChange?.(
+                    checked,
+                    setLocaleColumns,
+                    index,
+                    column,
+                  );
+                } else {
+                  setLocaleColumns(
+                    produce(localColumns, (draft) => {
+                      draft[index].visible = checked;
+                    }),
+                  );
+                }
               }}
+              disabled={column.disabled}
             >
               {typeof column.title === 'function'
                 ? // 不支持带参数的title函数
