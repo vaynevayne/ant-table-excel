@@ -3,17 +3,11 @@ import { useUncontrolled } from 'ant-table-excel/hooks';
 import { Button, Col, Row, Space, Table, TableProps } from 'antd';
 import { arrayMoveImmutable } from 'array-move';
 import { produce } from 'immer';
-import React, {
-  Dispatch,
-  FC,
-  memo,
-  useCallback,
-  useMemo,
-  useState,
-} from 'react';
+import React, { Dispatch, FC, memo, useMemo, useState } from 'react';
 import { Item, Menu, useContextMenu } from 'react-contexify';
 import 'react-contexify/dist/ReactContexify.css';
 import ReactDragListView from 'react-drag-listview';
+import ExcelModal from './ExcelModal';
 import './index.less';
 import SettingModal from './SettingModal';
 import { ColumnsState, ColumnWithState, Meta } from './type';
@@ -70,7 +64,10 @@ const MyTable: FC<MyTableProps> = ({
     [columns, columnsState, meta.defaultVisible],
   );
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isOpenedSetting, setIsOpenedSetting] = useState(false);
+  // excel modal
+  const [isOpenedExcel, setIsOpenedExcel] = useState(false);
+
   // 🔥 you can use this hook from everywhere. All you need is the menu id
   const { show } = useContextMenu({
     id: MENU_ID,
@@ -106,16 +103,14 @@ const MyTable: FC<MyTableProps> = ({
     [columnsState, setColumnsState],
   );
 
-  const onOk = useCallback(() => setIsModalOpen(false), []);
-  const onCancel = useCallback(() => setIsModalOpen(false), []);
-
   return (
     <>
       <Row wrap={false}>
         <Col flex={1}></Col>
         <Col flex="none">
           <Space style={{ marginBottom: 8, marginLeft: 'auto' }}>
-            <Button onClick={() => setIsModalOpen(true)}>列设置</Button>
+            <Button onClick={() => setIsOpenedSetting(true)}>列设置</Button>
+            <Button onClick={() => setIsOpenedExcel(true)}>excel</Button>
           </Space>
         </Col>
       </Row>
@@ -139,19 +134,32 @@ const MyTable: FC<MyTableProps> = ({
 
       <ColumnsStateContext.Provider value={contextValue}>
         {
+          // 列设置
           // 不能去除, 为了每次打开modal, useState重新执行
-          isModalOpen && (
+          isOpenedSetting && (
             <SettingModal
               columns={columns}
-              open={isModalOpen}
-              onOk={onOk}
-              onCancel={onCancel}
+              open={isOpenedSetting}
+              setIsOpenedSetting={setIsOpenedSetting}
               meta={meta}
             ></SettingModal>
           )
         }
+        {
+          // 导出 excel
+          isOpenedExcel && (
+            <ExcelModal
+              columns={columns}
+              dataSource={tableProps.dataSource}
+              open={isOpenedExcel}
+              setIsOpenedExcel={setIsOpenedExcel}
+              meta={meta}
+            ></ExcelModal>
+          )
+        }
       </ColumnsStateContext.Provider>
 
+      {/* 右键菜单 */}
       {meta.contextMenus?.length && (
         <Menu id={MENU_ID}>
           {meta.contextMenus.map((item, index) => (

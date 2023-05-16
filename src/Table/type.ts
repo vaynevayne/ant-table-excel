@@ -15,6 +15,10 @@ export type ColumnWithState = TableColumnType<any> & ColumnState;
 
 export type Meta = {
   /**
+   * 导出 excel 的默认文件名
+   */
+  filename?: string;
+  /**
    * 默认状态下,所有列的显示情况
    */
   defaultVisible?: boolean;

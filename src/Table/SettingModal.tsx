@@ -3,13 +3,21 @@ import { useWatch } from 'ant-table-excel/hooks/useWatch';
 import { Checkbox, Divider, Modal, ModalProps, Space } from 'antd';
 import type { CheckboxChangeEvent } from 'antd/es/checkbox';
 import { produce } from 'immer';
-import React, { FC, memo, useCallback, useContext, useState } from 'react';
+import React, {
+  Dispatch,
+  FC,
+  memo,
+  useCallback,
+  useContext,
+  useState,
+} from 'react';
 import { ColumnsState, ColumnWithState, Meta } from './type';
 import { findColKey, getState, getVisible } from './util';
 
 export type SettingModalProps = {
   columns: ColumnWithState[];
   meta: Meta;
+  setIsOpenedSetting: Dispatch<boolean>;
 } & ModalProps;
 
 const mapVisibleToColumns = (
@@ -29,6 +37,7 @@ const mapVisibleToColumns = (
 const SettingModal: FC<SettingModalProps> = ({
   columns,
   meta,
+  setIsOpenedSetting,
   ...modalProps
 }) => {
   const { columnsState, setColumnsState } = useContext(ColumnsStateContext);
@@ -68,30 +77,32 @@ const SettingModal: FC<SettingModalProps> = ({
     );
   };
 
-  const onSubmit = useCallback(
-    (e: any) => {
-      /**
-       * 允许 通过 defaultVisible=true visible=false
-       * or  defaultVisible=false visible=true 来隐藏某一列, 所以所有 visible true/false 都需要保留
-       */
-      const newColumnsState = produce(columnsState, (draft) => {
-        localColumns.forEach((column) => {
-          const colKey = findColKey(column);
-          draft[colKey] = {
-            ...draft[colKey],
-            visible: column.visible,
-          };
-        });
+  const onOk = useCallback(() => {
+    /**
+     * 允许 通过 defaultVisible=true visible=false
+     * or  defaultVisible=false visible=true 来隐藏某一列, 所以所有 visible true/false 都需要保留
+     */
+    const newColumnsState = produce(columnsState, (draft) => {
+      localColumns.forEach((column) => {
+        const colKey = findColKey(column);
+        draft[colKey] = {
+          ...draft[colKey],
+          visible: column.visible,
+        };
       });
+    });
 
-      setColumnsState(newColumnsState);
-      modalProps.onOk?.(e);
-    },
-    [columnsState, localColumns, modalProps, setColumnsState],
-  );
+    setColumnsState(newColumnsState);
+    setIsOpenedSetting(false);
+  }, [columnsState, localColumns, setColumnsState, setIsOpenedSetting]);
 
   return (
-    <Modal title="列设置" {...modalProps} onOk={onSubmit}>
+    <Modal
+      title="列设置"
+      onOk={onOk}
+      onCancel={() => setIsOpenedSetting(false)}
+      {...modalProps}
+    >
       <Checkbox
         indeterminate={indeterminate}
         onChange={onCheckAllChange}

@@ -48,7 +48,10 @@
   },
   "dependencies": {
     "array-move": "^4.0.0",
+    "exceljs": "^4.3.0",
+    "file-saver": "^2.0.5",
     "immer": "^10.0.2",
+    "lodash-es": "^4.17.21",
     "react-contexify": "^6.0.0"
   },
   "devDependencies": {
