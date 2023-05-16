@@ -1,4 +1,5 @@
 import { ColumnsStateContext } from 'ant-table-excel/context';
+import { BearProvider } from 'ant-table-excel/context/columnsState';
 import { useUncontrolled } from 'ant-table-excel/hooks';
 import { Button, Col, Row, Space, Table, TableProps } from 'antd';
 import { arrayMoveImmutable } from 'array-move';
@@ -132,32 +133,34 @@ const MyTable: FC<MyTableProps> = ({
         />
       </ReactDragListView.DragColumn>
 
-      <ColumnsStateContext.Provider value={contextValue}>
-        {
-          // 列设置
-          // 不能去除, 为了每次打开modal, useState重新执行
-          isOpenedSetting && (
-            <SettingModal
-              columns={columns}
-              open={isOpenedSetting}
-              setIsOpenedSetting={setIsOpenedSetting}
-              meta={meta}
-            ></SettingModal>
-          )
-        }
-        {
-          // 导出 excel
-          isOpenedExcel && (
-            <ExcelModal
-              columns={columns}
-              dataSource={tableProps.dataSource}
-              open={isOpenedExcel}
-              setIsOpenedExcel={setIsOpenedExcel}
-              meta={meta}
-            ></ExcelModal>
-          )
-        }
-      </ColumnsStateContext.Provider>
+      <BearProvider count={2}>
+        <ColumnsStateContext.Provider value={contextValue}>
+          {
+            // 列设置
+            // 不能去除, 为了每次打开modal, useState重新执行
+            isOpenedSetting && (
+              <SettingModal
+                columns={columns}
+                open={isOpenedSetting}
+                setIsOpenedSetting={setIsOpenedSetting}
+                meta={meta}
+              ></SettingModal>
+            )
+          }
+          {
+            // 导出 excel
+            isOpenedExcel && (
+              <ExcelModal
+                columns={columns}
+                dataSource={tableProps.dataSource}
+                open={isOpenedExcel}
+                setIsOpenedExcel={setIsOpenedExcel}
+                meta={meta}
+              ></ExcelModal>
+            )
+          }
+        </ColumnsStateContext.Provider>
+      </BearProvider>
 
       {/* 右键菜单 */}
       {meta.contextMenus?.length && (
