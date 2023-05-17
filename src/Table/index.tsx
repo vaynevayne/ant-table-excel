@@ -65,7 +65,7 @@ const MyTable: FC<MyTableProps> = ({
     }),
     [propMeta],
   );
-  const [dataSource, setDateSource] = useState<any[] | undefined>([]);
+  const [dataSource, setDateSource] = useState<any[]>([]);
   useWatch(propDataSource, (newVal) => {
     setDateSource(newVal || []);
   });
@@ -249,7 +249,7 @@ const MyTable: FC<MyTableProps> = ({
           isOpenedExcel && (
             <ExcelModal
               columns={columns}
-              dataSource={tableProps.dataSource}
+              dataSource={dataSource}
               open={isOpenedExcel}
               setIsOpenedExcel={setIsOpenedExcel}
               meta={meta}

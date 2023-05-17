@@ -47,15 +47,10 @@
     ]
   },
   "dependencies": {
-    "array-move": "^4.0.0",
-    "exceljs": "^4.3.0",
-    "file-saver": "^2.0.5",
-    "immer": "^10.0.2",
+    "excel": "^1.0.1",
     "lodash-es": "^4.17.21",
     "react-contexify": "^6.0.0",
-    "react-resizable": "^3.0.5",
-    "zundo": "^2.0.0-beta.16",
-    "zustand": "^4.3.8"
+    "react-resizable": "^3.0.5"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.6.3",
@@ -65,12 +60,15 @@
     "@types/react-resizable": "^3.0.4",
     "@umijs/lint": "^4.0.67",
     "antd": "^5.4.7",
+    "array-move": "^4.0.0",
     "dumi": "^2.1.22",
     "eslint": "^8.40.0",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "exceljs": "^4.3.0",
     "father": "^4.1.9",
     "gh-pages": "^5.0.0",
     "husky": "^8.0.3",
+    "immer": "^10.0.2",
     "lint-staged": "^13.2.2",
     "prettier": "^2.8.8",
     "prettier-plugin-organize-imports": "^3.2.2",
@@ -82,6 +80,9 @@
   },
   "peerDependencies": {
     "antd": "^5.4.7",
+    "array-move": "^4.0.0",
+    "exceljs": "^4.3.0",
+    "immer": "^10.0.2",
     "react": ">=16.9.0",
     "react-dom": ">=16.9.0",
     "react-drag-listview": "^2.0.0"
