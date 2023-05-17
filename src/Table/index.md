@@ -17,16 +17,19 @@ group:
 
 ### Demo
 
-<code src="./demo/controlled.tsx">受控模式</code>
+<code src="./demo/controlled.tsx" description='受控模式用法'>受控模式</code>
+
 <code src="./demo/uncontrolled.tsx">非受控模式</code>
+
 <code src="./demo/contextmenu.tsx">右键菜单</code>
 
 ### API
 
-| prop                 | 描述                                                          | 类型                                                              | 默认值                  |
-| -------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------------- |
-| columns              | 同 antd, 扩展了 visible 和 order , 以便通过 column 传递默认值 | `ColumnWithState[]`                                               | 无                      |
-| defaultColumnsState  | 列状态的非受控属性                                            | `ColumnsState`                                                    | 无                      |
-| columnsState         | 列状态的受控属性                                              | `ColumnsState`                                                    | 无                      |
-| onColumnsStateChange | 列状态改变时调用                                              | `(columnsState:ColumnsState, reason:'order' \| 'visible')=> void` | 无                      |
-| meta                 | 除了以上属性,其他属性都放到该命名空间下                       | `Meta`                                                            | `{defaultVisible:true}` |
+| prop                 | 描述                                                          | 类型                                                                              | 默认值                  |
+| -------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------------------- |
+| columns              | 同 antd, 扩展了 visible 和 order , 以便通过 column 传递默认值 | `ColumnWithState[]`                                                               | 无                      |
+| defaultColumnsState  | 列状态的非受控属性                                            | `ColumnsState`                                                                    | 无                      |
+| columnsState         | 列状态的受控属性                                              | `ColumnsState`                                                                    | 无                      |
+| onColumnsStateChange | 列状态改变时调用                                              | `(columnsState:ColumnsState, reason:'order' \| 'visible')=> void`                 | 无                      |
+| meta                 | 除了以上属性,其他属性都放到该命名空间下                       | `Meta`                                                                            | `{defaultVisible:true}` |
+| `.drag-handle`       | 具有该类名的列可以开启行拖拽                                  | `render: (text, record, index) => <a className="drag-handle" href="#">Drag</a> }` | 无                      |

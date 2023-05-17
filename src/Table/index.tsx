@@ -1,18 +1,34 @@
 import { ColumnsStateContext } from 'ant-table-excel/context';
-import { BearProvider } from 'ant-table-excel/context/columnsState';
-import { useUncontrolled } from 'ant-table-excel/hooks';
-import { Button, Col, Row, Space, Table, TableProps } from 'antd';
+import { useUncontrolled, useWatch } from 'ant-table-excel/hooks';
+import {
+  Button,
+  Col,
+  Row,
+  Space,
+  Table,
+  TableColumnType,
+  TableProps,
+} from 'antd';
 import { arrayMoveImmutable } from 'array-move';
 import { produce } from 'immer';
-import React, { Dispatch, FC, memo, useMemo, useState } from 'react';
+import React, {
+  Dispatch,
+  FC,
+  memo,
+  useCallback,
+  useMemo,
+  useState,
+} from 'react';
 import { Item, Menu, useContextMenu } from 'react-contexify';
 import 'react-contexify/dist/ReactContexify.css';
 import ReactDragListView from 'react-drag-listview';
+import 'react-resizable/css/styles.css';
+import { ResizeableTitle } from './components/ResizeableTitle';
 import ExcelModal from './ExcelModal';
 import './index.less';
 import SettingModal from './SettingModal';
-import { ColumnsState, ColumnWithState, Meta } from './type';
-import { findColKey, getSorter, getVisible } from './util';
+import { ColumnsState, ColumnState, ColumnWithState, Meta } from './type';
+import { findColKey, getSorter, getState, getVisible } from './util';
 
 type MyTableProps = {
   /**
@@ -37,6 +53,7 @@ const MyTable: FC<MyTableProps> = ({
   columnsState: propColumnsState,
   onColumnsStateChange,
   meta: propMeta,
+  dataSource: propDataSource,
   ...tableProps
 }) => {
   // 函数参数默认值对 null 无效,所以在这里写引用类型默认值
@@ -48,6 +65,10 @@ const MyTable: FC<MyTableProps> = ({
     }),
     [propMeta],
   );
+  const [dataSource, setDateSource] = useState<any[] | undefined>([]);
+  useWatch(propDataSource, (newVal) => {
+    setDateSource(newVal || []);
+  });
 
   const [columnsState, setColumnsState] = useUncontrolled<ColumnsState>({
     value: propColumnsState,
@@ -55,15 +76,6 @@ const MyTable: FC<MyTableProps> = ({
     finalValue: {},
     onChange: onColumnsStateChange,
   });
-
-  const tableColumns = useMemo(
-    () =>
-      columns
-        .filter(Boolean)
-        .sort(getSorter(columnsState))
-        .filter(getVisible(columnsState, meta.defaultVisible)),
-    [columns, columnsState, meta.defaultVisible],
-  );
 
   const [isOpenedSetting, setIsOpenedSetting] = useState(false);
   // excel modal
@@ -73,6 +85,82 @@ const MyTable: FC<MyTableProps> = ({
   const { show } = useContextMenu({
     id: MENU_ID,
   });
+
+  type Key = keyof ColumnState;
+
+  const setColumnState = useCallback(
+    (colKey: string, key: Key, value: ColumnState[Key]) => {
+      console.log('log:setColumnState', colKey, key, value);
+
+      console.log('prev', JSON.stringify(columnsState));
+      const newColumns = produce(columnsState, (draft) => {
+        draft[colKey] = {
+          ...draft[colKey],
+          [key]: value,
+        };
+      });
+
+      console.log('newColumns', JSON.stringify(newColumns));
+
+      setColumnsState(newColumns);
+    },
+
+    [columnsState, setColumnsState],
+  );
+
+  const contextValue = useMemo(
+    () => ({
+      columnsState,
+      setColumnsState,
+      setColumnState,
+    }),
+    [columnsState, setColumnsState, setColumnState],
+  );
+
+  const [, setIsResizing] = useState(false);
+
+  const onResizeStart = (e) => {
+    console.log('start resize');
+    setIsResizing(true);
+
+    e.stopPropagation();
+    e.preventDefault();
+  };
+
+  const onResizeStop = () => {
+    console.log('end resize');
+    setIsResizing(false);
+  };
+
+  const handleResize = useCallback(
+    (column: TableColumnType<any>) =>
+      (e, { size }) => {
+        const colKey = findColKey(column);
+        console.log('size', size);
+
+        setColumnState(colKey, 'width', size.width);
+      },
+    [setColumnState],
+  );
+
+  const tableColumns = useMemo(
+    () =>
+      columns
+        .filter(Boolean)
+        .sort(getSorter(columnsState))
+        .filter(getVisible(columnsState, meta.defaultVisible))
+        .map((column) => ({
+          ...column,
+          width: getState(columnsState, column)?.width || column.width,
+          onHeaderCell: (column) => ({
+            width: getState(columnsState, column)?.width || column.width,
+            onResize: handleResize(column),
+            onResizeStart: onResizeStart,
+            onResizeStop: onResizeStop,
+          }),
+        })),
+    [columns, columnsState, handleResize, meta.defaultVisible],
+  );
 
   const dragProps = {
     onDragEnd(fromIndex: number, toIndex: number) {
@@ -94,88 +182,96 @@ const MyTable: FC<MyTableProps> = ({
       setColumnsState(newColumnsState);
     },
     nodeSelector: 'th',
+    ignoreSelector: '.ant-table-cell-fix-left',
   };
 
-  const contextValue = useMemo(
-    () => ({
-      columnsState,
-      setColumnsState,
-    }),
-    [columnsState, setColumnsState],
-  );
+  const dragRowProps = {
+    onDragEnd(fromIndex, toIndex) {
+      const moved = arrayMoveImmutable<any>(dataSource, fromIndex, toIndex);
+      setDateSource(moved);
+    },
+    handleSelector: '.drag-handle',
+    // nodeSelector: 'tr.ant-table-row',
+  };
 
   return (
     <>
-      <Row wrap={false}>
-        <Col flex={1}></Col>
-        <Col flex="none">
-          <Space style={{ marginBottom: 8, marginLeft: 'auto' }}>
-            <Button onClick={() => setIsOpenedSetting(true)}>列设置</Button>
-            <Button onClick={() => setIsOpenedExcel(true)}>excel</Button>
-          </Space>
-        </Col>
-      </Row>
+      <ColumnsStateContext.Provider value={contextValue}>
+        <Row wrap={false}>
+          <Col flex={1}></Col>
+          <Col flex="none">
+            <Space style={{ marginBottom: 8, marginLeft: 'auto' }}>
+              <Button onClick={() => setIsOpenedSetting(true)}>列设置</Button>
+              <Button onClick={() => setIsOpenedExcel(true)}>excel</Button>
+            </Space>
+          </Col>
+        </Row>
 
-      <ReactDragListView.DragColumn {...dragProps}>
-        <Table
-          columns={tableColumns}
-          {...tableProps}
-          onRow={(record) => {
-            return {
-              onContextMenu: (event) => {
-                show({
-                  event,
-                  props: record,
-                });
-              },
-            };
-          }}
-        />
-      </ReactDragListView.DragColumn>
+        <ReactDragListView.DragColumn {...dragProps}>
+          <ReactDragListView.DragColumn {...dragRowProps}>
+            <Table
+              columns={tableColumns}
+              onRow={(record) => {
+                return {
+                  onContextMenu: (event) => {
+                    show({
+                      event,
+                      props: record,
+                    });
+                  },
+                };
+              }}
+              components={{
+                header: {
+                  cell: ResizeableTitle,
+                },
+              }}
+              dataSource={dataSource}
+              {...tableProps}
+            />
+          </ReactDragListView.DragColumn>
+        </ReactDragListView.DragColumn>
 
-      <BearProvider count={2}>
-        <ColumnsStateContext.Provider value={contextValue}>
-          {
-            // 列设置
-            // 不能去除, 为了每次打开modal, useState重新执行
-            isOpenedSetting && (
-              <SettingModal
-                columns={columns}
-                open={isOpenedSetting}
-                setIsOpenedSetting={setIsOpenedSetting}
-                meta={meta}
-              ></SettingModal>
-            )
-          }
-          {
-            // 导出 excel
-            isOpenedExcel && (
-              <ExcelModal
-                columns={columns}
-                dataSource={tableProps.dataSource}
-                open={isOpenedExcel}
-                setIsOpenedExcel={setIsOpenedExcel}
-                meta={meta}
-              ></ExcelModal>
-            )
-          }
-        </ColumnsStateContext.Provider>
-      </BearProvider>
+        {
+          // 列设置
+          // 不能去除, 为了每次打开modal, useState重新执行
+          isOpenedSetting && (
+            <SettingModal
+              columns={columns}
+              open={isOpenedSetting}
+              setIsOpenedSetting={setIsOpenedSetting}
+              meta={meta}
+            ></SettingModal>
+          )
+        }
+        {
+          // 导出 excel
+          isOpenedExcel && (
+            <ExcelModal
+              columns={columns}
+              dataSource={tableProps.dataSource}
+              open={isOpenedExcel}
+              setIsOpenedExcel={setIsOpenedExcel}
+              meta={meta}
+            ></ExcelModal>
+          )
+        }
 
-      {/* 右键菜单 */}
-      {meta.contextMenus?.length && (
-        <Menu id={MENU_ID}>
-          {meta.contextMenus.map((item, index) => (
-            <Item
-              key={item.key || index}
-              onClick={meta.handleItemClick}
-              {...item}
-            >
-              {item.children}
-            </Item>
-          ))}
-        </Menu>
-      )}
+        {/* 右键菜单 */}
+        {meta.contextMenus?.length && (
+          <Menu id={MENU_ID}>
+            {meta.contextMenus.map((item, index) => (
+              <Item
+                key={item.key || index}
+                onClick={meta.handleItemClick}
+                {...item}
+              >
+                {item.children}
+              </Item>
+            ))}
+          </Menu>
+        )}
+      </ColumnsStateContext.Provider>
     </>
   );
 };

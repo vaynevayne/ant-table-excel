@@ -61,7 +61,7 @@ const ExcelModal: FC<ExcelModalProps> = ({
       onCancel={() => setIsOpenedExcel(false)}
       {...modalProps}
     >
-      <Input value={filename} onChange={onChange}></Input>
+      <Input value={filename} onChange={onChange} placeholder="文件名"></Input>
       <Divider />
     </Modal>
   );

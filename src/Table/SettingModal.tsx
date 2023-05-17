@@ -1,10 +1,6 @@
 import { ColumnsStateContext } from 'ant-table-excel/context';
-import {
-  useBearContext,
-  useTemporalStore,
-} from 'ant-table-excel/context/columnsState';
 import { useWatch } from 'ant-table-excel/hooks/useWatch';
-import { Button, Checkbox, Divider, Modal, ModalProps, Space } from 'antd';
+import { Checkbox, Divider, Modal, ModalProps, Space } from 'antd';
 import type { CheckboxChangeEvent } from 'antd/es/checkbox';
 import { produce } from 'immer';
 import React, {
@@ -44,14 +40,6 @@ const SettingModal: FC<SettingModalProps> = ({
   setIsOpenedSetting,
   ...modalProps
 }) => {
-  const count = useBearContext((s) => s.count);
-  const increment = useBearContext((state) => state.increment);
-  const decrement = useBearContext((state) => state.decrement);
-
-  const { undo, redo } = useTemporalStore((state) => state);
-
-  console.log('count', count);
-
   const { columnsState, setColumnsState } = useContext(ColumnsStateContext);
 
   /**
@@ -91,7 +79,6 @@ const SettingModal: FC<SettingModalProps> = ({
 
   const onOk = useCallback(() => {
     console.log('ok');
-    increment(1);
 
     /**
      * 允许 通过 defaultVisible=true visible=false
@@ -126,11 +113,7 @@ const SettingModal: FC<SettingModalProps> = ({
         全选
       </Checkbox>
       <Divider />
-      bears: {count}
-      <Button onClick={() => increment(1)}>increment</Button>
-      <Button onClick={() => decrement(1)}>decrement</Button>
-      <Button onClick={() => undo()}>undo</Button>
-      <Button onClick={() => redo()}>redo</Button>
+
       <Space size={'small'}>
         {localColumns.map((column, index) => {
           return (

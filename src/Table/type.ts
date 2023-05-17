@@ -4,9 +4,9 @@ import { ItemParams } from 'react-contexify';
 
 export type ColumnState = {
   order?: number;
-
   visible?: boolean;
   disabled?: boolean;
+  width?: number;
 };
 
 export type ColumnsState = Record<string, ColumnState>;

@@ -6,6 +6,15 @@ export default () => {
   const columns = useMemo(
     () => [
       {
+        title: 'Drag',
+        key: 'Drag',
+        render: (text, record, index) => (
+          <a className="drag-handle" href="#">
+            Drag
+          </a>
+        ),
+      },
+      {
         title: '姓名',
         dataIndex: 'name',
       },
@@ -27,9 +36,11 @@ export default () => {
   );
 
   const dataSource = [
-    { name: '张三', age: 12, address: '北京', phone: 1388888888 },
+    { name: '张3', age: 12, address: '北京', phone: 1388888888 },
     { name: '张4', age: 13, address: '上海', phone: 1388888888 },
-    { name: '张5', age: 14, address: '杭州', phone: 1388888888 },
+    { name: '张5', age: 14, address: '杭州5', phone: 1388888888 },
+    { name: '张6', age: 14, address: '杭州6', phone: 1388888888 },
+    { name: '张7', age: 14, address: '杭州7', phone: 1388888888 },
   ];
 
   const [columnsState, onColumnsStateChange] = useState({ name: { order: 2 } });

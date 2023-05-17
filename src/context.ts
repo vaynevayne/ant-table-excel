@@ -1,4 +1,4 @@
-import { createContext, Dispatch } from 'react';
+import { createContext, Dispatch, useContext } from 'react';
 import { ColumnsState } from './Table/type';
 
 /** Table columnsState */
@@ -6,4 +6,7 @@ import { ColumnsState } from './Table/type';
 export const ColumnsStateContext = createContext<{
   columnsState: ColumnsState;
   setColumnsState: Dispatch<ColumnsState>;
-}>({ columnsState: {}, setColumnsState: () => {} });
+  setColumnState: (colKey: string, key: string, value: any) => void;
+}>({ columnsState: {}, setColumnsState: () => {}, setColumnState: () => {} });
+
+export const useColumnsStateContext = () => useContext(ColumnsStateContext);
