@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { Resizable } from 'react-resizable';
 import 'react-resizable/css/styles.css';
 
