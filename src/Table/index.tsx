@@ -9,6 +9,7 @@ import {
   TableColumnType,
   TableProps,
 } from 'antd';
+import { ColumnGroupType, ColumnType } from 'antd/es/table';
 import { arrayMoveImmutable } from 'array-move';
 import { produce } from 'immer';
 import React, {
@@ -25,7 +26,7 @@ import ReactDragListView from 'react-drag-listview';
 import 'react-resizable/css/styles.css';
 import { ResizeableTitle } from './components/ResizeableTitle';
 import ExcelModal from './ExcelModal';
-import './index.less';
+import './index.css';
 import SettingModal from './SettingModal';
 import { ColumnsState, ColumnState, ColumnWithState, Meta } from './type';
 import { findColKey, getSorter, getState, getVisible } from './util';
@@ -34,7 +35,9 @@ type MyTableProps = {
   /**
    * @description 可以在 column 中传入相关 columnState, 将作为默认值使用
    */
-  columns: ColumnWithState[];
+  columns:
+    | (ColumnGroupType<unknown> & ColumnState)[]
+    | (ColumnType<unknown> & ColumnState)[];
 
   defaultColumnsState?: ColumnsState;
 
