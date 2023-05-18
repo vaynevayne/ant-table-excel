@@ -1,6 +1,6 @@
 {
   "name": "ant-table-excel",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "基于 antd table 二次封装 ,支持导出 excel,列拖拽排序,列显示隐藏",
   "homepage": " https://vaynevayne.github.io/ant-table-excel/",
   "license": "MIT",
